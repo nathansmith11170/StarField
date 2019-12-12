@@ -1,0 +1,1 @@
+This is a program in C using SDL2 that creates an animated field of stars, similar to the popular 90's screensaver.
