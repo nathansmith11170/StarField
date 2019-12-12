@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*
+  this version is a modified stackexchange post that uses integer arithmetic
+  to get a uniform distribution within the range
+*/
 long randomIntUniform(long lowerBound, long upperBound)
 {
     unsigned long
@@ -16,12 +20,18 @@ long randomIntUniform(long lowerBound, long upperBound)
     while (max - defect <= (unsigned long) x);
 
     return x / intervalSize + lowerBound;
-} 
+}
 
+/* 
+  This is the straightforward solution, which apparently skews the distribution
+  towards small numbers
+*/
 long randomIntEasy(long lowerBound, long upperBound)
 {
     return (unsigned long) rand()%(upperBound-lowerBound+1)+lowerBound;
 }
+
+
 int main()
 {
     srand(time(0));
