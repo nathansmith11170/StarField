@@ -10,10 +10,13 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
 
+const int FRAMES_PER_SECOND = 60;
+const int MSECONDS_PER_FRAME = 1000/60;
+
 typedef struct {
     int x;
     int y;
-    int z;
+    double z;
 } Star;
 
 /* Generates a random integer in a range */
@@ -23,27 +26,21 @@ int randomInt(int lowerBound, int upperBound)
 }
 
 /* Moves a star by a certain x and y */
-void translateStar(Star* star, int translateByX, int translateByY)
+void translate(int (*coord)[], int translateByX, int translateByY)
 {
-    (*star).x + translateByX;
-    (*star).y + translateByY;
+    (*coord)[0] = (*coord)[0] + translateByX;
+    
+    (*coord)[1] = (*coord)[1] + translateByY;
 }
 
 /* Shifts a star's proximity by incrementing its z value */
-void updateStar(Star* star)
+void updateStar(Star *star)
 {
-    (*star).z -= 5;
+    (*star).z -= .025;
     if((*star).z < 0)
     {
-        (*star).z = WINDOW_WIDTH;
+        (*star).z = 1.0;
     }
-}
-
-/* This function takes a proportion and maps it from one interval of integers to a 
-   second interval */
-int map(double proportion, int min1, int max1, int min2, int max2)
-{
-    return (int) proportion * (max2 - min2) + min2;
 }
 
 int main()
@@ -67,7 +64,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(win, -1,
+    SDL_Renderer* renderer = SDL_CreateRenderer(win, 1,
                              SDL_RENDERER_ACCELERATED | 
                              SDL_RENDERER_PRESENTVSYNC);
 
@@ -79,9 +76,9 @@ int main()
     Star stars[800];
     for(int i = 0; i < 800; i++)
     {
-        stars[i].x = randomInt(-WINDOW_WIDTH, WINDOW_WIDTH);
-        stars[i].y = randomInt(-WINDOW_HEIGHT, WINDOW_HEIGHT);
-        stars[i].z = randomInt(0, WINDOW_WIDTH);
+        stars[i].x = randomInt(-WINDOW_WIDTH/2, WINDOW_WIDTH/2);
+        stars[i].y = randomInt(-WINDOW_HEIGHT/2, WINDOW_HEIGHT/2);
+        stars[i].z = (double)rand()/RAND_MAX;
     }
     
     /* The loop below is the main program loop. */
@@ -89,7 +86,7 @@ int main()
     int quit = 0;
     while(!quit)
     {
-
+        int start = SDL_GetTicks();
         while(SDL_PollEvent(&e))
         {
             switch(e.type)
@@ -101,18 +98,52 @@ int main()
                 default: {}
             }
         }
-        
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
         for(int i = 0; i < 800; i++)
         {
-            int sx = map((double) stars[i].x / stars[i].z, 0, 1, 0, WINDOW_WIDTH);
-            int sy = map((double) stars[i].y / stars[i].z, 0, 1, 0, WINDOW_HEIGHT);
-            translateStar(&stars[i], WINDOW_HEIGHT/2, WINDOW_WIDTH/2);
-            filledEllipseColor(renderer, sx, sy, 2, 2, 0xFFFFFFFF);
+            int sx, sy, temp[2];
+            double size;
             updateStar(&stars[i]);
+            temp[0] = stars[i].x/stars[i].z;
+            temp[1] = stars[i].y/stars[i].z;
+            translate(&temp, WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+            size = stars[i].z;
+            if( size < .2)
+            {
+                filledEllipseColor(renderer, temp[0], temp[1], 5, 5, 0xFFFFFFFF);
+            }
+            else if (size < .4)
+            {
+                filledEllipseColor(renderer, temp[0], temp[1], 4, 4, 0xFFFFFFFF);
+            }
+            else if (size < .6)
+            {
+                filledEllipseColor(renderer, temp[0], temp[1], 3, 3, 0xFFFFFFFF);
+            }
+            else if (size < .8)
+            {
+                filledEllipseColor(renderer, temp[0], temp[1], 2, 2, 0xFFFFFFFF);
+            }
+            else
+            {
+                filledEllipseColor(renderer, temp[0], temp[1], 1, 1, 0xFFFFFFFF);
+            }
+            
         }
         SDL_RenderPresent(renderer);
+        int time = SDL_GetTicks()-start;
+        if (time < 0)
+        {
+            continue;
+        }
+
+        int sleepTime = MSECONDS_PER_FRAME - time;
+        if (sleepTime > 0)
+        {
+            SDL_Delay(sleepTime);
+        }
     }
 
     SDL_DestroyWindow(win);
