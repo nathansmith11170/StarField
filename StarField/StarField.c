@@ -13,6 +13,10 @@
 const int FRAMES_PER_SECOND = 60;
 const int MSECONDS_PER_FRAME = 1000/60;
 
+/*
+  The x and the y are the position of the ellipse, and the z value represents
+  the proximity of the star, with 1 being far away and 0 being very close.
+*/
 typedef struct {
     int x;
     int y;
@@ -33,7 +37,7 @@ void translate(int (*coord)[], int translateByX, int translateByY)
     (*coord)[1] = (*coord)[1] + translateByY;
 }
 
-/* Shifts a star's proximity by incrementing its z value */
+/* Shifts a star's proximity by decrementing its z value */
 void updateStar(Star *star)
 {
     (*star).z -= .025;
@@ -73,6 +77,7 @@ int main()
         return EXIT_FAILURE;
     }
 
+    /* Initialize the stars */
     Star stars[800];
     for(int i = 0; i < 800; i++)
     {
@@ -86,7 +91,10 @@ int main()
     int quit = 0;
     while(!quit)
     {
+        /* this timer is for the framerate control */
         int start = SDL_GetTicks();
+
+        /* event loop */
         while(SDL_PollEvent(&e))
         {
             switch(e.type)
@@ -99,6 +107,7 @@ int main()
             }
         }
 
+        /* rendering */
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
         for(int i = 0; i < 800; i++)
@@ -133,6 +142,8 @@ int main()
             
         }
         SDL_RenderPresent(renderer);
+
+        /* frame rate control */
         int time = SDL_GetTicks()-start;
         if (time < 0)
         {
